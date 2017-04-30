@@ -1,0 +1,83 @@
+---
+title: "IDA* implementation"
+author: "Ludwik Przyrowski"
+date: "30 kwietnia 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(cache=TRUE)
+```
+## wstêp
+Celem æwiczenia jest implementacja algorytmu IDA* (Iterative deepening A*) przy u¿yciu jêzyka R. Æwiczenie jest wykonywane na potrzeby laboratorium sztucznej inteligencji bêd¹cych czêœci¹ podyplomowych studiów ["Data Science"](http://datascience.ii.pw.edu.pl/datascience.html) w Politechnice Warszawskiej
+
+## biblioteki
+```{r,  message=F}
+library(igraph)
+library(dplyr)
+
+```
+## dane testowe
+Do testowania algorytmu zosta³ u¿yty graf do³¹czony do instrukcji zajêæ zawieraj¹cy wierzcho³ki, wartoœci po³¹czeñ oraz heuterystyki:
+```{r, show=F}
+el=read.csv("src/Dataset-Astar-Example-EDGES.csv") # read the 'Dataset-Astar-Example-EDGES.csv' file
+heuristics <- el[el$type==" heuristic",]
+el1<- el[el$type!=" heuristic",]
+g=graph.data.frame(el1,directed=FALSE)
+E(g)$width <- E(g)$weight
+E(g)$color <- "pink"
+E(g)$label<- E(g)$weight
+plot(g)
+```   
+
+Celem algorytmu bêdzie znalezienie œcie¿ki od wêz³a A do wêz³a G. Rêczne obliczenia wskazuj¹, ¿e optymaln¹ siê¿k¹ jest A-C-F-G
+
+## algorytm
+Algorytm IDA* opiera siê na algorytmie przeszukiwania w g³¹b (interative deepending depth-first search) wykorzystuj¹cym jednoczeœnie heuterystyki zaimplementwane w algorytmie A\*. Takie zastosowanie pozwala na znaczne zredukowanie iloœci pamiêci potrzebnej do przechowywania dla algorytmu A\* jednoczeœnie wykorzystujac walory heuterystyk.  
+  
+Algorym mo¿na przedstawiæ jako[1](http://www2.inf.uos.de/papers_html/ai_94/node2.html),  [2](https://pdfs.semanticscholar.org/7eaf/535ca7f8d1e920e092483d11efb989982f19.pdf):   
+
+
+*"f(n) - total cost of a node n (cost already spent in reaching that node g(n) plus a lover bound on the estimated cost of the path to a goal staten h(n)). At the begining the cost is set to the heuteristic estimate of the initial state h(root). Then, for each iteration, the bound is increased to the minimum value that exceeded the previosuly bounnd" *[1]:
+
+```{}
+procedure IDA* (n);
+bound :=h(n)
+while not solved do
+  bound:=DFS(n,bound);
+
+function DFS(n, bound);
+if f(n) > bound
+  then return f(n);
+if h(n)=0
+  then return solved;
+return lowest value of DFS(ni, bound)
+       for all successors ni of n
+```
+
+
+funkcje pomocnicze:
+```{r}
+h <- function(heuristics,start,goal){
+  val<- heuristics[heuristics$from==start & heuristics$to==goal,"weight"]
+  if(!any(val)) return(0)
+  else return(as.numeric(val))
+}
+dist_between <- function(g, current, neighbor){
+  ei<-get.edge.ids(g, c(current,neighbor))
+  val <- E(g)$weight[ei]
+  if(!any(val)) return(NA)
+  else return(val)
+}
+```
+
+implementacja w R:
+```{r}
+IDA_star <- function(g, start, end){
+  
+  
+  
+  
+}
+```
+
