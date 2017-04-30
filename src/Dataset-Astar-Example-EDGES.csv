@@ -1,1 +1,15 @@
-from,to,weight,typeA,B,8, normalB,E,4, normalE,C,8, normalA,C,4, normalA,D,5, normalD,F,7, normalC,F,6, normalF,G,7, normalE,G,11, normalD,G,11, heuristicC,G,11, heuristicB,G,12, heuristic
+from,to,weight,type
+A,B,8, normal
+B,E,4, normal
+E,C,8, normal
+A,C,4, normal
+A,D,5, normal
+D,F,7, normal
+C,F,6, normal
+F,G,7, normal
+E,G,11, normal
+D,G,11, heuristic
+C,G,11, heuristic
+B,G,12, heuristic
+E,G,8, heuristic
+A,G,15, heuristic

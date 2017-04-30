@@ -33,7 +33,7 @@ plot(g)
 Celem algorytmu bêdzie znalezienie œcie¿ki od wêz³a A do wêz³a G. Rêczne obliczenia wskazuj¹, ¿e optymaln¹ siê¿k¹ jest A-C-F-G
 
 ## algorytm
-Algorytm IDA* opiera siê na algorytmie przeszukiwania w g³¹b (interative deepending depth-first search) wykorzystuj¹cym jednoczeœnie heuterystyki zaimplementwane w algorytmie A\*. Takie zastosowanie pozwala na znaczne zredukowanie iloœci pamiêci potrzebnej do przechowywania dla algorytmu A\* jednoczeœnie wykorzystujac walory heuterystyk.  
+Algorytm IDA* opiera siê na algorytmie 02020przeszukiwania w g³¹b (interative deepending depth-first search) wykorzystuj¹cym jednoczeœnie heuterystyki zaimplementwane w algorytmie A\*. Takie zastosowanie pozwala na znaczne zredukowanie iloœci pamiêci potrzebnej do przechowywania dla algorytmu A\* jednoczeœnie wykorzystujac walory heuterystyk.  
   
 Algorym mo¿na przedstawiæ jako[1](http://www2.inf.uos.de/papers_html/ai_94/node2.html),  [2](https://pdfs.semanticscholar.org/7eaf/535ca7f8d1e920e092483d11efb989982f19.pdf):   
 
@@ -74,6 +74,12 @@ dist_between <- function(g, current, neighbor){
 implementacja w R:
 ```{r}
 IDA_star <- function(g, start, end){
+  bound <- h(start)
+  solved = F
+  while(solved){
+    dfs = DFS(node)
+    
+  }
   
   
   
