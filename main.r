@@ -12,17 +12,16 @@ E(gr)$label<- E(gr)$weight
 
 plot(gr)
 
-start = 'A'
-goal = 'G'
-
-gScore <- as.list(rep(Inf,length(V(gr)))) 
-names(gScore) = names(as.list(V(gr)))
-
-fScore <- as.list(rep(Inf,length(V(gr)))) 
-names(fScore) = names(as.list(V(gr)))
 
 
-h <- function(start){
+#gScore <- as.list(rep(Inf,length(V(gr)))) 
+#names(gScore) = names(as.list(V(gr)))
+
+#fScore <- as.list(rep(Inf,length(V(gr)))) 
+#names(fScore) = names(as.list(V(gr)))
+
+
+h <- function(start, goal){
   val<- heuristics[heuristics$from==start & heuristics$to==goal,"weight"]
   if(!any(val)) return(0)
   else return(as.numeric(val))
@@ -34,66 +33,64 @@ dist_between <- function(current, neighbor){
   else return(val)
 }
 
+#start = 'A'
+#goal = 'G'
 
-IDA_star <-function(root){
-  bound = h(root)
+gScore <- as.list(rep(Inf,length(V(gr)))) 
+IDA_star <-function(root, goal, gr){
+  bound = h(root, goal)
   found = F
   g=0.0
-  gScore <<- as.list(rep(Inf,length(V(gr)))) 
-  names(gScore) <<- names(as.list(V(gr)))
-  # fScore[[start]] <<- h(start)
-  gScore[[start]] <<- 0
-  i=0
-  gScore
+  gScore <- as.list(rep(Inf,length(V(gr)))) 
+  names(gScore) <- names(as.list(V(gr)))
+  gScore[[root]] <<- 0
   while(found==F){
-    print(paste("starting while loop, bound= ",bound))
+    print(paste("starting new loop with bound= ",bound))
     #  t := search(root, 0, bound)
-    t = DFS(root, g, bound, root, gr, el1)
-    print(paste('returnning t=', t))
+    t = DFS(root, g, bound, root, gr, el1, goal)
     # if t = FOUND then return bound
-    if(t[[1]]==T){return(list(T,t[2]))}
+    if(t[[1]]==T){
+      return(list(T,t[[2]]))}
     # if t = Inf then return NOT_FOUND
     if(t[[2]]==Inf){return(list(F,0))}
     bound = t[[2]]
     found = t[[1]]
-    i = i+1
-    if(i==5){break}
-    
   }
+  
 }
 
-
-DFS <- function(n, g, bound, ring, graph_, el_){
+DFS <- function(n, g, bound, ring, graph_, el_, goal){
   # f := g + h(node)
-  f = g + h(n)
-  print(paste("  Analyzing ",ring, ' bound =', bound, ' f=', f))
+  f = g + h(n, goal)
+  print(paste(ring,'f=',f))
+  
   #  if f > bound then return f
-  if(f > bound){return(list(F,f))}
+  if(f > bound) return(list(F,f))
+  
   # if is_goal(node) then return FOUND
-  if(n==goal){return(list(T,gScore[[n]]))}
-  print(paste('n=',n,' goal=',goal,' ',n==goal))
+  if(n==goal){
+    print(ring)
+    return(list(T,gScore[[n]]))
+  }
   min= Inf
+  
   # for succ in successors(node) do
   for(neighbor in names(neighbors(graph_, n))){
-    print(paste('    analizing neighbor ',neighbor , 'of ',n , ' from ', toString(names(neighbors(gr,n))) ))
-    if(gScore[[neighbor]]==Inf){
-      gScore[[neighbor]] <<- gScore[[n]]+dist_between(n, neighbor)
-      # print(paste('updating gScore ',neighbor,' g=', gScore[[neighbor]], ' g(n)=',gScore[[n]]))
-     }
-    gi = gScore[[neighbor]]
-    el_tmp = el_[el_$from!=n,]
-    gr_tmp <<- graph.data.frame(el_tmp,directed=FALSE)
-    # t := search(succ, g + cost(node, succ), bound)
+    if(grepl(neighbor, ring))next
+    
+    gScore[[neighbor]] <<- gScore[[n]]+dist_between(n, neighbor)
+    
     ring_tmp = paste(ring,'-',neighbor )
-    t <- DFS(neighbor, gi, bound, ring_tmp, gr_tmp, el_tmp)
-    print(paste('   returnning t=', t))
+    gi = gScore[[neighbor]]
+    print(paste(ring, '?',neighbor , 'g=',gi))
+    # t := search(succ, g + cost(node, succ), bound)
+    t <- DFS(neighbor, gi, bound, ring_tmp, graph_, el_, goal)
     # if t = FOUND then return FOUND
-    if(t[[1]] == T){return(list(T,gScore[[neighbor]]))}
+    if(t[[1]] == T){return(list(T,t[[2]]))}
     # if t < min then min := t
-    if (t[[2]]< min){min = t[[2]]}
+    if (t[[2]]<min){min = t[[2]]}
   }
-  print(paste('minimum ',min))
-    return(list(F,min))
+  return(list(F,min))
 }
 
 

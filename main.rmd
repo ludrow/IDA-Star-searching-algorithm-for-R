@@ -1,5 +1,5 @@
 ---
-title: "IDA* implementation"
+title: "Implementacja algorytmu IDA*"
 author: "Ludwik Przyrowski"
 date: "30 kwietnia 2017"
 output: html_document
@@ -23,17 +23,19 @@ Do testowania algorytmu zosta³ u¿yty graf do³¹czony do instrukcji zajêæ zawieraj
 el=read.csv("src/Dataset-Astar-Example-EDGES.csv") # read the 'Dataset-Astar-Example-EDGES.csv' file
 heuristics <- el[el$type==" heuristic",]
 el1<- el[el$type!=" heuristic",]
-g=graph.data.frame(el1,directed=FALSE)
-E(g)$width <- E(g)$weight
-E(g)$color <- "pink"
-E(g)$label<- E(g)$weight
-plot(g)
+
+gr=graph.data.frame(el1,directed=FALSE)
+E(gr)$width <- E(gr)$weight
+E(gr)$color <- "pink"
+E(gr)$label<- E(gr)$weight
+
+plot(gr)
 ```   
 
 Celem algorytmu bêdzie znalezienie œcie¿ki od wêz³a A do wêz³a G. Rêczne obliczenia wskazuj¹, ¿e optymaln¹ siê¿k¹ jest A-C-F-G
 
 ## algorytm
-Algorytm IDA* opiera siê na algorytmie 02020przeszukiwania w g³¹b (interative deepending depth-first search) wykorzystuj¹cym jednoczeœnie heuterystyki zaimplementwane w algorytmie A\*. Takie zastosowanie pozwala na znaczne zredukowanie iloœci pamiêci potrzebnej do przechowywania dla algorytmu A\* jednoczeœnie wykorzystujac walory heuterystyk.  
+Algorytm IDA* opiera siê na algorytmie przeszukiwania w g³¹b (interative deepending depth-first search) wykorzystuj¹cym jednoczeœnie heuterystyki zaimplementwane w algorytmie A\*. Takie zastosowanie pozwala na znaczne zredukowanie iloœci pamiêci potrzebnej do przechowywania dla algorytmu A\* jednoczeœnie wykorzystujac walory heuterystyk.  
   
 Algorym mo¿na przedstawiæ jako[1](http://www2.inf.uos.de/papers_html/ai_94/node2.html),  [2](https://pdfs.semanticscholar.org/7eaf/535ca7f8d1e920e092483d11efb989982f19.pdf):   
 
@@ -58,32 +60,82 @@ return lowest value of DFS(ni, bound)
 
 funkcje pomocnicze:
 ```{r}
-h <- function(heuristics,start,goal){
+h <- function(start, goal){
   val<- heuristics[heuristics$from==start & heuristics$to==goal,"weight"]
   if(!any(val)) return(0)
   else return(as.numeric(val))
 }
-dist_between <- function(g, current, neighbor){
-  ei<-get.edge.ids(g, c(current,neighbor))
-  val <- E(g)$weight[ei]
+dist_between <- function(current, neighbor){
+  ei<-get.edge.ids(gr, c(current,neighbor))
+  val <- E(gr)$weight[ei]
   if(!any(val)) return(NA)
   else return(val)
 }
+gScore <- as.list(rep(Inf,length(V(gr)))) 
 ```
 
 implementacja w R:
 ```{r}
-IDA_star <- function(g, start, end){
-  bound <- h(start)
-  solved = F
-  while(solved){
-    dfs = DFS(node)
-    
+IDA_star <-function(root, goal, gr){
+  bound = h(root, goal)
+  found = F
+  g=0.0
+  gScore <- as.list(rep(Inf,length(V(gr)))) 
+  names(gScore) <- names(as.list(V(gr)))
+  gScore[[root]] <<- 0
+  while(found==F){
+    print(paste("starting new loop with bound= ",bound))
+    #  t := search(root, 0, bound)
+    t = DFS(root, g, bound, root, gr, el1, goal)
+    # if t = FOUND then return bound
+    if(t[[1]]==T){
+      return(list(T,t[[2]]))}
+    # if t = Inf then return NOT_FOUND
+    if(t[[2]]==Inf){return(list(F,0))}
+    bound = t[[2]]
+    found = t[[1]]
   }
-  
-  
-  
-  
-}
-```
 
+}
+
+  DFS <- function(n, g, bound, ring, graph_, el_, goal){
+    # f := g + h(node)
+    f = g + h(n, goal)
+    print(paste(ring,'f=',f))
+    
+    #  if f > bound then return f
+    if(f > bound) return(list(F,f))
+    
+    # if is_goal(node) then return FOUND
+    if(n==goal){
+      print(ring)
+      return(list(T,gScore[[n]]))
+      }
+    min= Inf
+    
+    # for succ in successors(node) do
+    for(neighbor in names(neighbors(graph_, n))){
+      if(grepl(neighbor, ring))next
+  
+      gScore[[neighbor]] <<- gScore[[n]]+dist_between(n, neighbor)
+      
+      ring_tmp = paste(ring,'-',neighbor )
+      gi = gScore[[neighbor]]
+      print(paste(ring, '?',neighbor , 'g=',gi))
+      # t := search(succ, g + cost(node, succ), bound)
+      t <- DFS(neighbor, gi, bound, ring_tmp, graph_, el_, goal)
+      # if t = FOUND then return FOUND
+      if(t[[1]] == T){return(list(T,t[[2]]))}
+      # if t < min then min := t
+      if (t[[2]]<min){min = t[[2]]}
+    }
+      return(list(F,min))
+  }
+```
+## test
+```{r}
+IDA_star('A', 'G', gr)
+```   
+## Podsumowanie
+Jak widaæ algorytm potrafi³ znaleœæ œcie¿kê ju¿ w pierwszej pêtli jednak by³y sprawdzane kolejne wy¿sze wartoœci granicy. Ma to zagwarantowaæ znalezienie optymalnej œcie¿ki.   
+Uda³o siê zaimplementowaæ i pokazaæ poprawne dzia³anie algorytmu IDA\*. Sama implementacja ma s³u¿yæ celom dydaktycznym. Jeœli mia³aby byæ u¿yta w celach produkcyjnych powinna byæ bardziej zoptymalizowana (na przyk³ad unikniêcie zmiennych globalnych).
